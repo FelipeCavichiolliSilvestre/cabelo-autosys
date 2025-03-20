@@ -13,5 +13,5 @@ export default tseslint.config(
   react.configs.flat['jsx-runtime'],
   prettier,
   { files: ['**/*.{js,mjs,cjs,ts,jsx,tsx}'], languageOptions: { globals: globals.browser } },
-  { ignores: ['src-tauri/*'] },
+  { ignores: ['src-tauri/*', 'postcss.config.cjs'] },
 );
