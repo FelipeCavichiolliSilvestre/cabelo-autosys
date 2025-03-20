@@ -18,6 +18,7 @@
     "@tabler/icons-react": "^3.31.0",
     "@tauri-apps/api": "^2",
     "@tauri-apps/plugin-opener": "^2",
+    "@tauri-apps/plugin-sql": "~2",
     "@tauri-apps/plugin-window-state": "~2",
     "@types/node": "^22.13.10",
     "eslint": "^9.22.0",
