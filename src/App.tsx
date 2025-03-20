@@ -8,7 +8,7 @@ import AppRoutes from './AppRoutes';
 
 export default function App() {
   return (
-    <MantineProvider>
+    <MantineProvider defaultColorScheme="auto">
       <Notifications limit={3} />
       <ModalsProvider>
         <BrowserRouter>
