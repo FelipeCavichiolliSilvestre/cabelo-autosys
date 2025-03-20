@@ -1,6 +1,12 @@
 import { useMemo, useState } from 'react';
-import { Stack, FloatingIndicator, UnstyledButton, Tooltip } from '@mantine/core';
-import { IconBox, IconTool, IconReceipt } from '@tabler/icons-react';
+import {
+  Stack,
+  FloatingIndicator,
+  UnstyledButton,
+  Tooltip,
+  useMantineColorScheme,
+} from '@mantine/core';
+import { IconBox, IconTool, IconReceipt, IconMoon, IconSun } from '@tabler/icons-react';
 import { Link, useLocation } from 'react-router';
 import classes from './Navbar.module.css';
 
@@ -16,6 +22,7 @@ export default function Navbar() {
     () => itemsData.findIndex((link) => location.pathname.startsWith(link.href)),
     [location],
   );
+  const { toggleColorScheme } = useMantineColorScheme();
 
   /* refs required for the FloatingIndicator */
   const [rootRef, setRootRef] = useState<HTMLDivElement | null>(null);
@@ -28,7 +35,7 @@ export default function Navbar() {
   const links = itemsData.map((link, index) => (
     <Tooltip label={link.label} key={link.href} position="right">
       <UnstyledButton
-        className={classes.link}
+        className={classes.item}
         component="a"
         renderRoot={(props) => <Link {...props} to={link.href} />}
         data-active={active === index}
@@ -40,14 +47,31 @@ export default function Navbar() {
   ));
 
   return (
-    <Stack pos="relative" gap={5} ref={setRootRef}>
-      {links}
+    <>
+      <Stack
+        style={{ flex: 1 }}
+        pos="relative"
+        align="center"
+        justify="center"
+        gap={5}
+        ref={setRootRef}
+      >
+        {links}
 
-      <FloatingIndicator
-        target={controlsRefs[active]}
-        parent={rootRef}
-        className={classes.indicator}
-      />
-    </Stack>
+        <FloatingIndicator
+          target={controlsRefs[active]}
+          parent={rootRef}
+          className={classes.indicator}
+        />
+      </Stack>
+
+      <UnstyledButton darkHidden className={classes.item} onClick={toggleColorScheme}>
+        <IconMoon className={classes.label} size={25} stroke={1.5} />
+      </UnstyledButton>
+
+      <UnstyledButton lightHidden className={classes.item} onClick={toggleColorScheme}>
+        <IconSun className={classes.label} size={25} stroke={1.5} />
+      </UnstyledButton>
+    </>
   );
 }
