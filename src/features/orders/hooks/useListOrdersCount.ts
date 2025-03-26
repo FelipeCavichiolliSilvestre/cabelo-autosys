@@ -25,8 +25,7 @@ export function useListOrdersCount(params: UseListOrdersCountParams) {
       builder = builder.where('service_orders.is_closed', Number(status === OrderStatus.closed));
     }
 
-    const query = builder.toParams();
-    return { query: query.text, bindValues: query.values };
+    return builder.toParams();
   }, [licensePlate, clientName, status]);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
