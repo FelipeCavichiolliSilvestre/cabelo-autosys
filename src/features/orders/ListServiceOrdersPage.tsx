@@ -1,4 +1,3 @@
-import { DatabaseFetchInput } from '@/database';
 import {
   Paper,
   Table,
@@ -20,53 +19,26 @@ import { Link, useNavigate } from 'react-router';
 import sql from 'sqlite-bricks';
 
 import useSWR from 'swr';
+import { useListOrders } from './hooks';
+import { OrderStatus } from './types';
 
 export default function ListServiceOrdersPage() {
   const navigate = useNavigate();
 
   const [licensePlate, setLicensePlate] = useState('');
   const [clientName, setClientName] = useState('');
-  const [status, setStatus] = useState<null | string>(null);
+  const [status, setStatus] = useState<undefined | OrderStatus>(undefined);
 
   const [pageSize, setPageSize] = useState(50);
   const [pageNumber, setPageNumber] = useState(1);
 
-  const listQuery = useMemo(() => {
-    let builder = sql
-      .select(
-        'service_orders.id',
-        'service_orders.created_at',
-        'service_orders.is_closed',
-        'clients.name AS client_name',
-        'cars.make AS car_make',
-        'cars.model AS car_model',
-        'cars.year AS car_year',
-        'cars.license_plate AS car_license_plate',
-      )
-      .from('service_orders')
-      .join('cars')
-      .on('service_orders.car_id', 'cars.id')
-      .join('clients')
-      .on('service_orders.client_id', 'clients.id')
-      .where(sql.like('cars.license_plate', `%${licensePlate}%`))
-      .limit(pageSize)
-      .offset((pageNumber - 1) * pageSize)
-      .orderBy('service_orders.is_closed', 'service_orders.created_at DESC');
-
-    if (licensePlate !== '')
-      builder = builder.where(sql.like('cars.license_plate', `%${licensePlate}%`));
-    if (clientName !== '') builder = builder.where(sql.like('clients.name', `%${clientName}%`));
-    if (status) {
-      builder = builder.where('service_orders.is_closed', Number(status === 'Encerrado'));
-    }
-
-    return builder;
-  }, [licensePlate, pageSize, pageNumber, clientName, status]);
-
-  const { data, isLoading, error } = useSWR({
-    query: listQuery.toParams().text,
-    bindValues: listQuery.toParams().values,
-  } as DatabaseFetchInput);
+  const { orders, isLoading, error } = useListOrders({
+    pageNumber,
+    pageSize,
+    clientName,
+    licensePlate,
+    status,
+  });
 
   const compactPagination = useMatches({
     base: true,
@@ -87,7 +59,7 @@ export default function ListServiceOrdersPage() {
     }
     if (clientName !== '') builder = builder.where(sql.like('clients.name', `%${clientName}%`));
     if (status) {
-      builder = builder.where('service_orders.is_closed', Number(status === 'Encerrado'));
+      builder = builder.where('service_orders.is_closed', Number(status === OrderStatus.closed));
     }
 
     return builder;
@@ -111,7 +83,9 @@ export default function ListServiceOrdersPage() {
   }, 200);
 
   function onStatusChange(value: string | null) {
-    setStatus(value);
+    setStatus(
+      value ? (value === OrderStatus.closed ? OrderStatus.closed : OrderStatus.open) : undefined,
+    );
     setPageNumber(1);
   }
 
@@ -142,7 +116,7 @@ export default function ListServiceOrdersPage() {
             placeholder="Status"
             leftSection={<IconAlertCircle size={16} stroke={1.5} />}
             clearable
-            data={['Aberto', 'Encerrado']}
+            data={[OrderStatus.open, OrderStatus.closed]}
           />
         </Grid.Col>
 
@@ -183,24 +157,24 @@ export default function ListServiceOrdersPage() {
               </Table.Thead>
 
               <Table.Tbody>
-                {data.map((row: any) => (
+                {orders?.map((row) => (
                   <Table.Tr
                     key={row.id}
                     onClick={() => navigate(`/orders/${row.id}`)}
                     style={{ cursor: 'pointer' }}
                   >
                     <Table.Td>{row.id}</Table.Td>
-                    <Table.Td>{row.client_name}</Table.Td>
-                    <Table.Td>{row.car_make}</Table.Td>
-                    <Table.Td>{row.car_model}</Table.Td>
-                    <Table.Td>{row.car_year}</Table.Td>
-                    <Table.Td>{row.car_license_plate}</Table.Td>
+                    <Table.Td>{row.client.name}</Table.Td>
+                    <Table.Td>{row.car.make}</Table.Td>
+                    <Table.Td>{row.car.model}</Table.Td>
+                    <Table.Td>{row.car.year}</Table.Td>
+                    <Table.Td>{row.car.licensePlate}</Table.Td>
                     <Table.Td className="text-center">
-                      {row.is_closed === 1 ? 'Fechado' : 'Aberto'}
+                      {row.isClosed ? OrderStatus.closed : OrderStatus.open}
                     </Table.Td>
                     <Table.Td>
-                      {new Date(row.created_at).toLocaleDateString('pt-BR')}{' '}
-                      {new Date(row.created_at).toLocaleTimeString('pt-BR')}
+                      {new Date(row.createdAt).toLocaleDateString('pt-BR')}{' '}
+                      {new Date(row.createdAt).toLocaleTimeString('pt-BR')}
                     </Table.Td>
                   </Table.Tr>
                 ))}
