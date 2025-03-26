@@ -13,13 +13,10 @@ import {
 } from '@mantine/core';
 import { useDebouncedCallback } from '@mantine/hooks';
 import { IconPlus, IconAlertCircle, IconUser, IconNumber123 } from '@tabler/icons-react';
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 
-import sql from 'sqlite-bricks';
-
-import useSWR from 'swr';
-import { useListOrders } from './hooks';
+import { useListOrders, useListOrdersCount } from './hooks';
 import { OrderStatus } from './types';
 
 export default function ListServiceOrdersPage() {
@@ -27,17 +24,23 @@ export default function ListServiceOrdersPage() {
 
   const [licensePlate, setLicensePlate] = useState('');
   const [clientName, setClientName] = useState('');
-  const [status, setStatus] = useState<undefined | OrderStatus>(undefined);
+  const [status, setStatus] = useState<string | null>(null);
 
   const [pageSize, setPageSize] = useState(50);
   const [pageNumber, setPageNumber] = useState(1);
+
+  const statusSearch = status
+    ? status === OrderStatus.closed
+      ? OrderStatus.closed
+      : OrderStatus.open
+    : undefined;
 
   const { orders, isLoading, error } = useListOrders({
     pageNumber,
     pageSize,
     clientName,
     licensePlate,
-    status,
+    status: statusSearch,
   });
 
   const compactPagination = useMatches({
@@ -45,32 +48,13 @@ export default function ListServiceOrdersPage() {
     xs: false,
   });
 
-  const countQuery = useMemo(() => {
-    let builder = sql
-      .select('COUNT(service_orders.id) AS count')
-      .from('service_orders')
-      .join('cars')
-      .on('service_orders.car_id', 'cars.id')
-      .join('clients')
-      .on('service_orders.client_id', 'clients.id');
-
-    if (licensePlate !== '') {
-      builder = builder.where(sql.like('cars.license_plate', `%${licensePlate}%`));
-    }
-    if (clientName !== '') builder = builder.where(sql.like('clients.name', `%${clientName}%`));
-    if (status) {
-      builder = builder.where('service_orders.is_closed', Number(status === OrderStatus.closed));
-    }
-
-    return builder;
-  }, [licensePlate, clientName, status]);
-
-  const { data: countData, isLoading: isCountLoading } = useSWR({
-    query: countQuery.toParams().text,
-    bindValues: countQuery.toParams().values,
+  const { count } = useListOrdersCount({
+    clientName,
+    licensePlate,
+    status: statusSearch,
   });
 
-  const numberOfPages = Math.ceil((isCountLoading ? Infinity : countData[0].count) / pageSize);
+  const numberOfPages = Math.ceil((count ?? Infinity) / pageSize);
 
   const onLicensePlateChange = useDebouncedCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setLicensePlate(e.target.value);
@@ -83,9 +67,7 @@ export default function ListServiceOrdersPage() {
   }, 200);
 
   function onStatusChange(value: string | null) {
-    setStatus(
-      value ? (value === OrderStatus.closed ? OrderStatus.closed : OrderStatus.open) : undefined,
-    );
+    setStatus(value);
     setPageNumber(1);
   }
 
