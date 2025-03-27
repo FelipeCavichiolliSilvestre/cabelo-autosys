@@ -1,6 +1,5 @@
 import {
   Paper,
-  Table,
   Divider,
   Pagination,
   Box,
@@ -14,14 +13,13 @@ import {
 import { useDebouncedCallback } from '@mantine/hooks';
 import { IconPlus, IconAlertCircle, IconUser, IconNumber123 } from '@tabler/icons-react';
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router';
+import { Link } from 'react-router';
 
 import { useListOrders, useListOrdersCount } from './hooks';
 import { OrderStatus } from './types';
+import { OrdersTable } from './components';
 
 export default function ListServiceOrdersPage() {
-  const navigate = useNavigate();
-
   const [licensePlate, setLicensePlate] = useState('');
   const [clientName, setClientName] = useState('');
   const [status, setStatus] = useState<string | null>(null);
@@ -35,7 +33,7 @@ export default function ListServiceOrdersPage() {
       : OrderStatus.open
     : undefined;
 
-  const { orders, isLoading, error } = useListOrders({
+  const { orders, isLoading, error, isValidating } = useListOrders({
     pageNumber,
     pageSize,
     clientName,
@@ -118,53 +116,7 @@ export default function ListServiceOrdersPage() {
         radius="md"
         style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'scroll' }}
       >
-        <Box style={{ flex: 1, overflow: 'auto' }}>
-          {isLoading ? (
-            'loading...'
-          ) : error ? (
-            error
-          ) : (
-            <Table highlightOnHover withColumnBorders stickyHeader>
-              <Table.Thead>
-                <Table.Tr>
-                  <Table.Th>No.</Table.Th>
-                  <Table.Th>Cliente</Table.Th>
-                  <Table.Th>Marca</Table.Th>
-                  <Table.Th>Modelo</Table.Th>
-                  <Table.Th>Ano</Table.Th>
-                  <Table.Th>Placa</Table.Th>
-                  <Table.Th>Status</Table.Th>
-                  <Table.Th>Data</Table.Th>
-                </Table.Tr>
-              </Table.Thead>
-
-              <Table.Tbody>
-                {orders?.map((row) => (
-                  <Table.Tr
-                    key={row.id}
-                    onClick={() => navigate(`/orders/${row.id}`)}
-                    style={{ cursor: 'pointer' }}
-                  >
-                    <Table.Td>{row.id}</Table.Td>
-                    <Table.Td>{row.client.name}</Table.Td>
-                    <Table.Td>{row.car.make}</Table.Td>
-                    <Table.Td>{row.car.model}</Table.Td>
-                    <Table.Td>{row.car.year}</Table.Td>
-                    <Table.Td>{row.car.licensePlate}</Table.Td>
-                    <Table.Td className="text-center">
-                      {row.isClosed ? OrderStatus.closed : OrderStatus.open}
-                    </Table.Td>
-                    <Table.Td>
-                      {new Date(row.createdAt).toLocaleDateString('pt-BR')}{' '}
-                      {new Date(row.createdAt).toLocaleTimeString('pt-BR')}
-                    </Table.Td>
-                  </Table.Tr>
-                ))}
-              </Table.Tbody>
-            </Table>
-          )}
-        </Box>
-
+        <OrdersTable orders={orders} isLoading={isLoading || isValidating} error={error} />
         <Divider />
 
         <Grid p={15}>
