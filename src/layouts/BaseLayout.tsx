@@ -10,7 +10,7 @@ export default function BaseLayout() {
         <Navbar />
       </AppShell.Navbar>
 
-      <AppShell.Main>
+      <AppShell.Main className={classes.main}>
         <Outlet />
       </AppShell.Main>
     </AppShell>

@@ -1,0 +1,14 @@
+.table {
+  font-family: var(--mantine-font-family-monospace);
+
+  thead tr th {
+    box-sizing: content-box;
+  }
+
+
+  td {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+}
