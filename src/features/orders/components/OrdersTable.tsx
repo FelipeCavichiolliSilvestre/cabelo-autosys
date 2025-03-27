@@ -1,8 +1,7 @@
-import { Badge, Box, LoadingOverlay, Table, Transition } from '@mantine/core';
+import { Box, LoadingOverlay, Table, Transition } from '@mantine/core';
 import { OrderListItem } from '../hooks';
-import { useNavigate } from 'react-router';
-import { OrderStatus } from '../types';
 import classes from './OrderTableStyle.module.css';
+import OrdersTableRow from './OrdersTableRow';
 
 export interface OrdersTableProps {
   orders?: OrderListItem[];
@@ -12,8 +11,6 @@ export interface OrdersTableProps {
 
 export default function OrdersTable(props: OrdersTableProps) {
   const { orders, isLoading } = props;
-
-  const navigate = useNavigate();
 
   return (
     <Box style={{ flex: 1, overflow: 'auto', position: 'relative' }}>
@@ -41,33 +38,7 @@ export default function OrdersTable(props: OrdersTableProps) {
           </Table.Tr>
         </Table.Thead>
 
-        <Table.Tbody>
-          {orders?.map((row) => (
-            <Table.Tr key={row.id} onClick={() => navigate(`/orders/${row.id}`)}>
-              <Table.Td>{row.id.toString().padStart(5, '0')}</Table.Td>
-              <Table.Td>{row.client.name}</Table.Td>
-              <Table.Td>{row.car.make}</Table.Td>
-              <Table.Td>{row.car.model}</Table.Td>
-              <Table.Td>{row.car.year}</Table.Td>
-              <Table.Td>{row.car.licensePlate}</Table.Td>
-              <Table.Td style={{ textAlign: 'center' }}>
-                {row.isClosed ? (
-                  <Badge color="pink" variant="light">
-                    {OrderStatus.closed}
-                  </Badge>
-                ) : (
-                  <Badge color="green" variant="light">
-                    {OrderStatus.open}
-                  </Badge>
-                )}
-              </Table.Td>
-              <Table.Td>
-                {new Date(row.createdAt).toLocaleDateString('pt-BR')}{' '}
-                {new Date(row.createdAt).toLocaleTimeString('pt-BR')}
-              </Table.Td>
-            </Table.Tr>
-          ))}
-        </Table.Tbody>
+        <Table.Tbody>{orders?.map((row) => <OrdersTableRow key={row.id} {...row} />)}</Table.Tbody>
       </Table>
     </Box>
   );
