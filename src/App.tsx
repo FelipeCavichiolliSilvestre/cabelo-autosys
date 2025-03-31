@@ -1,5 +1,6 @@
 import '@mantine/core/styles.css';
 import '@mantine/notifications/styles.css';
+import './App.css';
 import { MantineProvider } from '@mantine/core';
 import { Notifications } from '@mantine/notifications';
 import { ModalsProvider } from '@mantine/modals';
@@ -7,10 +8,11 @@ import { BrowserRouter } from 'react-router';
 import AppRoutes from './AppRoutes';
 import { SWRConfig } from 'swr';
 import { databaseFetcher } from './database/fetcher';
+import theme from './theme';
 
 export default function App() {
   return (
-    <MantineProvider defaultColorScheme="auto">
+    <MantineProvider defaultColorScheme="auto" theme={theme}>
       <Notifications limit={3} />
       <ModalsProvider>
         <BrowserRouter>
